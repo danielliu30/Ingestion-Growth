@@ -44,6 +44,13 @@ hand-rolled protobuf wire format (`proto/`). No protobuf library.
   slot publish = `setRelease`, reads = `getAcquire`, wire codec scalar
   access = `byteArrayViewVarHandle` (single MOV). Zero per-record
   objects on the hot path.
+- **Off-heap applies to data, not architecture.** Pipeline stages and
+  the sequential/out-of-order split stand as designed; what changes is
+  what stages hand off — off-heap references (arena offset+len or
+  `MemorySegment`/`ByteBuffer` slices), never heap `byte[]` payloads.
+  Pending: `RawInput`/`Record` signatures revised from `byte[]` to
+  `ByteBuffer` views in the first service-phase CR (semantic change,
+  documented in that PR).
 - **Java 21+ (floor 17).** Off-heap via `java.lang.foreign`
   (`MemorySegment` + VarHandle access) — near-final API shape on 21,
   finalized in 22. Direct `ByteBuffer` + `byteBufferViewVarHandle` is
