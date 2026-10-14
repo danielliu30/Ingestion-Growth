@@ -8,9 +8,10 @@ package store;
  * dedicated worker against a frozen arena while writers continue on
  * the twin (or pause, per {@link FillMode}).
  *
- * Sorts the index, not the records: {@code offsetIndex} is permuted
- * in place; {@link ByteArena} contents are untouched, keeping the
- * arena append-only even through flush.
+ * Sorts the index, not the records: the offset index lives in a
+ * separate mutable off-heap region bound at construction and is
+ * permuted in place there; {@link ByteArena} bytes are never written,
+ * keeping the arena append-only even through flush.
  */
 public interface RadixSorter {
 
@@ -37,8 +38,9 @@ public interface RadixSorter {
      * VarHandles) — scalar ops only, no heap arrays, no per-record
      * objects.
      *
-     * @param indexOffset offset of the {@code count}-long index into
-     *                    the frozen arena, permuted in place
+     * @param indexOffset offset of the {@code count}-entry {@code long}
+     *                    index in the bound index region (not the frozen
+     *                    arena), permuted in place
      * @param count       number of index entries
      * @param key         sort-key extractor supplied by the caller
      */
