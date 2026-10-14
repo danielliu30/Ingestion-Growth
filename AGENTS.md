@@ -39,6 +39,20 @@ hand-rolled protobuf wire format (`proto/`). No protobuf library.
   `FillMode` (TWIN_BUFFER / PAUSE_RESUME) — both modes implemented.
 - **Cold tier = sorted runs** (binary-searchable); the hashmap is
   hot-tier index only and is rebuilt per segment — no resize under readers.
+- **Bare metal by directive.** Byte streams and VarHandles, not
+  objects and locks: arena bump = `VarHandle.getAndAdd` (LOCK XADD),
+  slot publish = `setRelease`, reads = `getAcquire`, wire codec scalar
+  access = `byteArrayViewVarHandle` (single MOV). Zero per-record
+  objects on the hot path.
+- **Off-heap constraint (Java 11).** No Foreign Memory API — off-heap
+  means direct `ByteBuffer` + `byteBufferViewVarHandle`, with
+  `sun.misc.Unsafe` as the escape hatch for ops VarHandle can't express.
+- **Performance is a provable claim.** All speed claims must be
+  JMH-verified against a fair POJO baseline
+  (`java.util.HashMap` + object records + protobuf-java). Metrics:
+  throughput, bytes/op allocation, p99/p999 latency, GC pauses.
+  JMH and the baseline live in `bench/` — bench dependencies never
+  enter `src/` (JMH works with plain javac, no build tool).
 
 ## CR / PR conventions
 
