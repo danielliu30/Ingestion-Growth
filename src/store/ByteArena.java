@@ -18,9 +18,10 @@ public interface ByteArena {
     /**
      * Copy {@code len} bytes from {@code srcOffset} (in the caller's
      * bound source region) to the arena tail and return the offset.
-     * Implementations claim space with {@code VarHandle.getAndAdd} on the
-     * write cursor — a single LOCK XADD — so each caller owns a private
-     * region: wait-free, no slot contention.
+     * Called only by the shard's single writer, so the write cursor is
+     * advanced with a plain add — no atomic read-modify-write. After the
+     * copy the new watermark is published with {@code setRelease};
+     * readers load it with {@code getAcquire} and only read below it.
      *
      * @param srcOffset offset of the source bytes in the bound source region
      * @param len       bytes to append
