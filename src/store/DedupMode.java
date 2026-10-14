@@ -8,8 +8,8 @@ package store;
 public enum DedupMode {
 
     /**
-     * Identity is {@code key} alone: the first writer to claim the slot
-     * wins, later writes with the same key are ignored.
+     * Identity is {@code key} alone: the first write of a key wins;
+     * later writes with the same key are ignored.
      */
     FIRST_WRITE_WINS,
 
