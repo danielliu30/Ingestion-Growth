@@ -9,10 +9,10 @@ package store;
  * payload. Rebuilt per segment on flush, so it never resizes under
  * concurrent readers.
  *
- * Storage is raw bytes in off-heap memory
- * ({@code java.lang.foreign.MemorySegment}): slot metadata and the
- * offset table accessed via {@code ValueLayout} VarHandles — scalar
- * machine-width ops, no boxed entries, no heap arrays.
+ * Storage is raw bytes in off-heap memory (e.g. a direct
+ * {@code ByteBuffer} or a {@code sun.misc.Unsafe} allocation): slot
+ * metadata and the offset table are accessed with scalar machine-width
+ * ops — no boxed entries, no heap arrays.
  *
  * Concurrency contract: append-only semantics apply — entries are
  * published (not mutated), so correctness reduces to release/acquire
