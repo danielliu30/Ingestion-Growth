@@ -3,10 +3,11 @@ package proto;
 /**
  * Hand-rolled protobuf wire-format encoder.
  *
- * Writes into a caller-owned byte region — the implementation owns no
- * growable buffers, so encoding allocates nothing on the hot path.
- * Protobuf wire types: varint (0), fixed64 (1), length-delimited (2),
- * fixed32 (5).
+ * Writes into a caller-owned off-heap region bound at construction —
+ * the implementation owns no growable buffers, so encoding allocates
+ * nothing on the hot path. Protobuf wire types: varint (0),
+ * fixed64 (1), length-delimited (2), fixed32 (5). All addresses are
+ * {@code long} offsets; no heap arrays in the contract.
  */
 public interface WireWriter {
 
@@ -27,11 +28,14 @@ public interface WireWriter {
     void writeVarint(long value);
 
     /**
-     * Write a length-delimited field: varint length followed by raw bytes.
+     * Write a length-delimited field: varint length followed by
+     * {@code len} bytes copied from {@code srcOffset} in the bound
+     * source region.
      *
-     * @param data bytes to frame
+     * @param srcOffset offset of the source bytes
+     * @param len       bytes to frame
      */
-    void writeLengthDelimited(byte[] data);
+    void writeLengthDelimited(long srcOffset, int len);
 
     /**
      * Write 4 bytes little-endian (fixed32 wire type).

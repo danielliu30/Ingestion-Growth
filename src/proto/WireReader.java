@@ -3,9 +3,11 @@ package proto;
 /**
  * Hand-rolled protobuf wire-format decoder.
  *
- * Reads forward over a caller-owned byte region; no copies, no objects
- * per field. Unknown fields are skipped by wire type — forward
- * compatibility comes free with the format.
+ * Reads forward over a caller-owned off-heap region bound at
+ * construction; no copies, no objects per field. Unknown fields are
+ * skipped by wire type — forward compatibility comes free with the
+ * format. All addresses are {@code long} offsets; no heap arrays in
+ * the contract.
  */
 public interface WireReader {
 
@@ -24,12 +26,13 @@ public interface WireReader {
     long readVarint();
 
     /**
-     * Read a length-delimited field into {@code dst}.
+     * Read a length-delimited field, copying its bytes to
+     * {@code dstOffset} in the bound destination region.
      *
-     * @param dst destination buffer, must be at least the field length
+     * @param dstOffset destination offset, must have room for the field length
      * @return number of bytes copied
      */
-    int readBytes(byte[] dst);
+    int readBytesTo(long dstOffset);
 
     /** @return 4 bytes little-endian */
     int readFixed32();
