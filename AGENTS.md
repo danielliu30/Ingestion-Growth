@@ -52,8 +52,10 @@ hand-rolled protobuf wire format (`proto/`). No protobuf library.
   JMH-verified against a fair POJO baseline
   (`java.util.HashMap` + object records + protobuf-java). Metrics:
   throughput, bytes/op allocation, p99/p999 latency, GC pauses.
-  JMH and the baseline live in `bench/` — bench dependencies never
-  enter `src/` (JMH works with plain javac, no build tool).
+- **POJO exists only in `bench/`.** The object-based implementation
+  is written once, solely as the comparison baseline — `src/` is
+  always and only the bare-metal path. JMH/protobuf-java are bench
+  dependencies and never enter `src/` (JMH works with plain javac).
 
 ## CR / PR conventions
 
