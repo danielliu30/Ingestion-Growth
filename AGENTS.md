@@ -1,6 +1,6 @@
 # Ingestion-Growth — agent context
 
-High-performance ingestion tool. Plain Java 11, no build tools, no dependencies.
+High-performance ingestion tool. Plain Java 21+ (floor 17), no build tools, no dependencies.
 Goal: minimal Java-heap usage, bare-metal techniques throughout.
 
 ## Build / verify
@@ -44,9 +44,10 @@ hand-rolled protobuf wire format (`proto/`). No protobuf library.
   slot publish = `setRelease`, reads = `getAcquire`, wire codec scalar
   access = `byteArrayViewVarHandle` (single MOV). Zero per-record
   objects on the hot path.
-- **Off-heap constraint (Java 11).** No Foreign Memory API — off-heap
-  means direct `ByteBuffer` + `byteBufferViewVarHandle`, with
-  `sun.misc.Unsafe` as the escape hatch for ops VarHandle can't express.
+- **Java 21+ (floor 17).** Off-heap via `java.lang.foreign`
+  (`MemorySegment` + VarHandle access) — near-final API shape on 21,
+  finalized in 22. Direct `ByteBuffer` + `byteBufferViewVarHandle` is
+  the fallback; `sun.misc.Unsafe` only if a needed op is inexpressible.
 - **Performance is a provable claim.** All speed claims must be
   JMH-verified against a fair POJO baseline
   (`java.util.HashMap` + object records + protobuf-java). Metrics:
