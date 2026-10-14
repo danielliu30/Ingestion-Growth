@@ -3,23 +3,25 @@ package ingest;
 /**
  * A single stage in the ingestion pipeline.
  *
- * Each stage takes an input of type I, does its work, and hands off
- * an output of type O to the next stage. Stages own no shared state
- * and are composable in any order that makes sense.
+ * Bare-metal contract: stages hand off a {@code long} — an arena
+ * offset pointing at the record/bytes the next stage consumes.
+ * Primitive in, primitive out: no boxing, no per-record objects,
+ * nothing on the Java heap. The interpretation of the offset is
+ * stage-specific (raw block, normalized record header, wire bytes).
  *
- * @param <I> input type accepted by this stage
- * @param <O> output type produced by this stage
+ * Stages own no shared state and are composable in any order that
+ * makes sense; each writer runs its own pipeline instance.
  */
-public interface IngestionStage<I, O> {
+public interface IngestionStage {
 
     /**
-     * Run this stage's work on the given input.
+     * Run this stage's work on the input at {@code offset}.
      *
-     * @param input value handed off from the previous stage
-     * @return value to hand to the next stage
+     * @param offset arena offset handed off from the previous stage
+     * @return arena offset to hand to the next stage
      * @throws IngestionException if this stage cannot process the input
      */
-    O process(I input) throws IngestionException;
+    long process(long offset) throws IngestionException;
 
     /**
      * Human-readable name of this stage, used in logs and errors.
