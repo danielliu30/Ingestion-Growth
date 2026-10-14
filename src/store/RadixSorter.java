@@ -31,8 +31,10 @@ public interface RadixSorter {
 
     /**
      * Reorder {@code offsetIndex} so {@code key.keyAt(offset)} is
-     * non-decreasing. LSD radix: 4 stable passes over 8-bit digits,
-     * using a pre-allocated counting buffer — no per-record objects.
+     * non-decreasing. LSD radix: 4 stable passes over 8-bit digits.
+     * The counting buffer is pre-allocated in off-heap memory
+     * ({@code MemorySegment} + {@code ValueLayout} VarHandles) —
+     * scalar ops only, no per-record objects.
      *
      * @param offsetIndex positions into the frozen arena, permuted in place
      * @param key         sort-key extractor supplied by the caller
