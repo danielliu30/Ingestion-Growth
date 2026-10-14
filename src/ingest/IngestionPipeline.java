@@ -1,7 +1,5 @@
 package ingest;
 
-import java.util.List;
-
 /**
  * Ordered chain of {@link IngestionStage}s.
  *
@@ -11,8 +9,8 @@ import java.util.List;
  */
 public final class IngestionPipeline {
 
-    /** Stages in execution order; fixed at construction. */
-    private final List<IngestionStage<?, ?>> stages;
+    /** Stages in execution order; fixed at construction. Plain array — no collections. */
+    private final IngestionStage<?, ?>[] stages;
 
     /**
      * @param stages stages in execution order; must form a type-adjacent
@@ -20,7 +18,7 @@ public final class IngestionPipeline {
      *               stage's input type). Adjacency is the caller's wiring
      *               responsibility in the skeleton phase.
      */
-    public IngestionPipeline(List<IngestionStage<?, ?>> stages) {
+    public IngestionPipeline(IngestionStage<?, ?>... stages) {
         this.stages = stages;
     }
 
@@ -42,6 +40,6 @@ public final class IngestionPipeline {
 
     /** @return number of stages in the chain */
     public int size() {
-        return stages.size();
+        return stages.length;
     }
 }
