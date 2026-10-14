@@ -15,7 +15,7 @@ public enum IngestMode {
 
     /**
      * Out-of-order ingestion: the arena accepts records unordered;
-     * at threshold a background {@link RadixSorter} sorts the offset
+     * at threshold a background {@code RadixSorter} sorts the offset
      * index and a sorted run is flushed to cold storage. Writer
      * behavior during sort is governed by {@link FillMode}.
      */
