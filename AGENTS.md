@@ -1,12 +1,12 @@
 # Ingestion-Growth — agent context
 
-High-performance ingestion tool. Plain Java 11, no build tools, no dependencies.
+High-performance ingestion tool. Plain Java 17+ (built with JDK 21), no build tools, no dependencies.
 Goal: minimal Java-heap usage, bare-metal techniques throughout.
 
 ## Build / verify
 
 ```sh
-javac -d out $(find src -name "*.java")   # compile everything
+javac --release 17 -d out $(find src -name "*.java")   # compile everything
 ```
 
 ## Architecture

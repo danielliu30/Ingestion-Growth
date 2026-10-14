@@ -1,6 +1,6 @@
 # Ingestion-Growth
 
-Plain Java (11), no build tools, no dependencies.
+Plain Java (17+, built with JDK 21), no build tools, no dependencies.
 
 Two systems built with low-level techniques:
 
@@ -8,9 +8,8 @@ Two systems built with low-level techniques:
 - **`ingest/`** — a stage-based pipeline that ingests raw data, encodes it to the
   protobuf wire format by hand (`proto/`), and stores it in the custom HashMap
 
-## Build & run
+## Build
 
 ```sh
-javac -d out $(find src -name "*.java")
-java -cp out Main
+javac --release 17 -d out $(find src -name "*.java")
 ```

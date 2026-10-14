@@ -1,21 +1,23 @@
 initialize:
   - run: |
+      export DEBIAN_FRONTEND=noninteractive
       sudo apt-get update
-      sudo apt-get install -y wget apt-transport-https
-      wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo apt-key add -
-      echo "deb https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+      sudo apt-get install -y wget gpg
+      sudo install -d -m 0755 /etc/apt/keyrings
+      wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo gpg --dearmor --yes -o /etc/apt/keyrings/adoptium.gpg
+      echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
       sudo apt-get update
       sudo apt-get install -y temurin-21-jdk
-      sudo update-alternatives --set java /usr/lib/jvm/temurin-21-jdk-amd64/bin/java
-      sudo update-alternatives --set javac /usr/lib/jvm/temurin-21-jdk-amd64/bin/javac
+      JDK=/usr/lib/jvm/temurin-21-jdk-$(dpkg --print-architecture)
+      sudo update-alternatives --set java "$JDK/bin/java"
+      sudo update-alternatives --set javac "$JDK/bin/javac"
       javac -version
 maintenance:
   - run: |
-      javac -d out $(find src -name "*.java")
+      javac --release 17 -d out $(find src -name "*.java")
 knowledge:
   - name: build
     contents: |
-      javac -d out $(find src -name "*.java")
-  - name: run
-    contents: |
-      java -cp out Main
+      Java 17 floor, JDK 21 installed. Compile everything against the floor:
+      javac --release 17 -d out $(find src -name "*.java")
+      No entry point (Main) exists yet; there is no run command.
