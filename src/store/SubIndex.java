@@ -2,7 +2,7 @@ package store;
 
 /**
  * Custom open-addressed hash map: key bytes at an arena offset
- * ({@code keyOffset, keyLen}) -> long record offset.
+ * ({@code keyOffset, keyLen}) {@literal ->} long record offset.
  *
  * Serves as the hot-tier sub-index — one per live segment. Record
  * bytes never live here, only the lookup entry; the arena owns the
