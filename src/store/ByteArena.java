@@ -3,10 +3,10 @@ package store;
 /**
  * A pre-allocated, append-only region of memory holding raw record bytes.
  *
- * Implementations back the region with
- * {@code java.lang.foreign.MemorySegment} (FFM, Java 21+) and perform
- * scalar access through {@code ValueLayout} VarHandles — machine-width
- * reads/writes, nothing on the Java heap. An arena never resizes: when
+ * Implementations back the region with off-heap memory (e.g. a direct
+ * {@code ByteBuffer} or a {@code sun.misc.Unsafe} allocation, both
+ * available on Java 11) and perform machine-width scalar reads/writes
+ * against it — nothing on the Java heap. An arena never resizes: when
  * full it is frozen and swapped out — growth happens by appending a new
  * arena, never by rehash.
  *
