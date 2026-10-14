@@ -9,9 +9,15 @@ package store;
  * payload. Rebuilt per segment on flush, so it never resizes under
  * concurrent readers.
  *
+ * Storage is raw bytes in off-heap memory
+ * ({@code java.lang.foreign.MemorySegment}): slot metadata and the
+ * offset table accessed via {@code ValueLayout} VarHandles — scalar
+ * machine-width ops, no boxed entries.
+ *
  * Concurrency contract: append-only semantics apply — entries are
  * published (not mutated), so correctness reduces to release/acquire
- * ordering on the slot's occupied marker.
+ * ordering on the slot's occupied marker ({@code setRelease} on write,
+ * {@code getAcquire} on read).
  */
 public interface SubIndex {
 
