@@ -46,8 +46,9 @@ public interface ByteArena {
     long capacity();
 
     /**
-     * Reset the write cursor to zero, discarding all contents.
-     * Only called after the arena has been sorted and flushed — never
+     * Reset the write cursor to zero so the arena can be refilled.
+     * Records are never erased: only called after the arena has been
+     * sorted and flushed to a cold run, which retains them — never
      * while readers may hold offsets into it.
      */
     void clear();
