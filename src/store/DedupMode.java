@@ -14,8 +14,11 @@ public enum DedupMode {
     FIRST_WRITE_WINS,
 
     /**
-     * Identity is {@code (key, seq)}: duplicate keys coexist as separate
-     * versions; readers choose which version to observe.
+     * Identity is {@code (key, seq)}: every write of a key is kept as its
+     * own record, stamped with its per-shard {@code seq}. The hot-tier
+     * {@link SubIndex} stays key-only and resolves a key to a single
+     * offset; the other versions are not reachable through it and remain
+     * in the arena and cold runs, distinguished by {@code seq}.
      */
     SEQ_NAMESPACED
 }
