@@ -17,10 +17,11 @@ public final class IngestionPipeline {
      * @param stages stages in execution order; must form a coherent
      *               offset contract (each stage's output offset is a
      *               valid input for the next). Adjacency is the
-     *               caller's wiring responsibility.
+     *               caller's wiring responsibility. The array is
+     *               copied, so later writes to it do not alter the chain.
      */
     public IngestionPipeline(IngestionStage... stages) {
-        this.stages = stages;
+        this.stages = stages.clone();
     }
 
     /**
