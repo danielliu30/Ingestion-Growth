@@ -1,6 +1,6 @@
 # Ingestion-Growth — agent context
 
-High-performance ingestion tool. Plain Java 17+ (built with JDK 21), no build tools, no dependencies.
+High-performance ingestion tool. Plain Java 21+ (floor 17), no build tools, no dependencies.
 Goal: minimal Java-heap usage, bare-metal techniques throughout.
 
 ## Build / verify
@@ -35,15 +35,43 @@ hand-rolled protobuf wire format (`proto/`). No protobuf library.
   offset index (never sorts records in place), flush to cold runs.
 - **One writer per shard** — multi-writer = N single-writer shards.
   Hot sources scale via stage-level SPSC pipeline depth, not more writers.
-- **User switches.** `DedupMode` (FIRST_WRITE_WINS / SEQ_NAMESPACED) and
-  `FillMode` (TWIN_BUFFER / PAUSE_RESUME) — both modes implemented.
+- **User switches.** `IngestMode` (ORDERED / SORT_LATER — which ingest
+  path a source takes), `DedupMode` (FIRST_WRITE_WINS / SEQ_NAMESPACED)
+  and `FillMode` (TWIN_BUFFER / PAUSE_RESUME) — all modes implemented.
 - **Cold tier = sorted runs** (binary-searchable); the hashmap is
   hot-tier index only and is rebuilt per segment — no resize under readers.
+- **Bare metal by directive.** Byte streams and VarHandles, not
+  objects and locks: arena bump = `VarHandle.getAndAdd` (LOCK XADD),
+  slot publish = `setRelease`, reads = `getAcquire`, wire codec scalar
+  access = `byteArrayViewVarHandle` (single MOV). Zero per-record
+  objects on the hot path.
+- **Off-heap applies to data, not architecture.** Pipeline stages and
+  the sequential/out-of-order split stand as designed; what changes is
+  what stages hand off — off-heap references (arena offset+len or
+  `MemorySegment`/`ByteBuffer` slices), never heap `byte[]` payloads.
+  Pending: `RawInput`/`Record` signatures revised from `byte[]` to
+  `ByteBuffer` views in the first service-phase CR (semantic change,
+  documented in that PR).
+- **Java 21+ (floor 17).** Off-heap via `java.lang.foreign`
+  (`MemorySegment` + VarHandle access) — near-final API shape on 21,
+  finalized in 22. Direct `ByteBuffer` + `byteBufferViewVarHandle` is
+  the fallback; `sun.misc.Unsafe` only if a needed op is inexpressible.
+- **Performance is a provable claim.** All speed claims must be
+  JMH-verified against a fair POJO baseline
+  (`java.util.HashMap` + object records + protobuf-java). Metrics:
+  throughput, bytes/op allocation, p99/p999 latency, GC pauses.
+- **POJO exists only in `bench/`.** The object-based implementation
+  is written once, solely as the comparison baseline — `src/` is
+  always and only the bare-metal path. JMH/protobuf-java are bench
+  dependencies and never enter `src/` (JMH works with plain javac).
 
 ## CR / PR conventions
 
 - **One logically-smallest component per CR.** No mixed contexts.
-  Stack branches only on true dependencies.
+  Stack branches only on true compile-time dependencies (imports —
+  never javadoc mentions). Stacked PRs merge into their base branch,
+  not `main`, and only retarget when the base branch is deleted:
+  merge the base PR first, delete its branch, then merge the stack.
 - **Framing: infra -> service -> tests.** Branch + title prefixes
   (`infra/`, `service/`, `test/`). Current phase is infra skeletons only.
 - **PR body:** always `## Context` (project phase), `## Why this change`
