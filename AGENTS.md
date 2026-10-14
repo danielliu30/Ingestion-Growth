@@ -35,8 +35,9 @@ hand-rolled protobuf wire format (`proto/`). No protobuf library.
   offset index (never sorts records in place), flush to cold runs.
 - **One writer per shard** — multi-writer = N single-writer shards.
   Hot sources scale via stage-level SPSC pipeline depth, not more writers.
-- **User switches.** `DedupMode` (FIRST_WRITE_WINS / SEQ_NAMESPACED) and
-  `FillMode` (TWIN_BUFFER / PAUSE_RESUME) — both modes implemented.
+- **User switches.** `IngestMode` (ORDERED / SORT_LATER — which ingest
+  path a source takes), `DedupMode` (FIRST_WRITE_WINS / SEQ_NAMESPACED)
+  and `FillMode` (TWIN_BUFFER / PAUSE_RESUME) — all modes implemented.
 - **Cold tier = sorted runs** (binary-searchable); the hashmap is
   hot-tier index only and is rebuilt per segment — no resize under readers.
 - **Bare metal by directive.** Byte streams and VarHandles, not
