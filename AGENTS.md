@@ -43,7 +43,10 @@ hand-rolled protobuf wire format (`proto/`). No protobuf library.
 ## CR / PR conventions
 
 - **One logically-smallest component per CR.** No mixed contexts.
-  Stack branches only on true dependencies.
+  Stack branches only on true compile-time dependencies (imports —
+  never javadoc mentions). Stacked PRs merge into their base branch,
+  not `main`, and only retarget when the base branch is deleted:
+  merge the base PR first, delete its branch, then merge the stack.
 - **Framing: infra -> service -> tests.** Branch + title prefixes
   (`infra/`, `service/`, `test/`). Current phase is infra skeletons only.
 - **PR body:** always `## Context` (project phase), `## Why this change`
