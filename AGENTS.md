@@ -6,7 +6,7 @@ Goal: minimal Java-heap usage, bare-metal techniques throughout.
 ## Build / verify
 
 ```sh
-javac -d out $(find src -name "*.java")   # compile everything
+javac --release 17 -d out $(find src -name "*.java")   # compile everything
 ```
 
 ## Architecture

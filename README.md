@@ -1,6 +1,6 @@
 # Ingestion-Growth
 
-Plain Java (11), no build tools, no dependencies.
+Plain Java 21+ (floor 17), no build tools, no dependencies.
 
 Two systems built with low-level techniques:
 
@@ -13,5 +13,5 @@ Two systems built with low-level techniques:
 ## Build
 
 ```sh
-javac -d out $(find src -name "*.java")
+javac --release 17 -d out $(find src -name "*.java")
 ```
