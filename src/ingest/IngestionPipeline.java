@@ -27,7 +27,12 @@ public final class IngestionPipeline {
     /**
      * Thread {@code offset} through every stage in order.
      *
-     * @param offset arena offset fed to the first stage
+     * {@code offset} is in whatever region the first stage reads: for a
+     * chain headed by {@link ByteSource}, the source-region offset from
+     * {@code FrameSource.frameOffset()}; otherwise an arena offset. Every
+     * later stage receives an arena offset.
+     *
+     * @param offset input offset for the first stage, in that stage's input region
      * @return arena offset produced by the last stage
      * @throws IngestionException the first failure encountered; the stage
      *                            that threw is identifiable by {@link
