@@ -1,25 +1,33 @@
 package ingest;
 
 /**
- * First pipeline stage: pulls raw bytes from a source and appends them
- * to the arena as a framed raw block, returning its offset.
+ * First pipeline stage: copies one record frame out of a
+ * {@code FrameSource}-bound source region into the arena as a raw block,
+ * returning its offset.
  *
- * Bare-metal contract: bytes go straight into the arena/off-heap
- * region — the stage copies into storage, never wraps them in
- * per-record objects. The {@code source} tag is edge metadata for
- * logging only; it is not carried on the hot path. One instance per
- * writer; holds no shared state.
+ * Input is a source region the transport adapter has bound to the
+ * shard's {@code FrameSource}: complete varint-length-delimited record
+ * frames, one shard per source. The writer walks it with
+ * {@code FrameSource.nextFrame()} and hands each frame here; frame
+ * walking, reassembly and shard selection all happen before this stage.
+ *
+ * Bare-metal contract: bytes go straight from the bound source region
+ * into the arena ({@code ByteArena.append} reads the source offset
+ * directly) — no intermediate buffer, no per-record objects. The {@code source} tag is edge
+ * metadata for logging only; it is not carried on the hot path or into
+ * the arena. One instance per writer; holds no shared state.
  */
 public final class ByteSource implements IngestionStage {
 
     /**
-     * Read the source descriptor block at {@code offset} (its format is
-     * edge-specific), pull the payload bytes, and append them to the
-     * arena as {@code [len][bytes]}.
+     * Append the current frame's record bytes to the arena as
+     * {@code [len][bytes]}. {@code offset} is {@code FrameSource.frameOffset()}
+     * in the bound source region and the length is
+     * {@code FrameSource.frameLength()} of the same, current frame.
      *
-     * @param offset arena offset of the source-descriptor block
+     * @param offset source-region offset of the current frame's record bytes
      * @return arena offset of the appended raw block
-     * @throws IngestionException if the source cannot be read
+     * @throws IngestionException if the arena is full
      * @throws UnsupportedOperationException skeleton phase — not yet implemented
      */
     @Override
