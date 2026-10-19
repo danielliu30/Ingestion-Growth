@@ -24,8 +24,9 @@ import ingest.IngestionPipeline;
  *       rebuilt per segment), so {@link #ingest} never stalls. Costs 2x
  *       arena memory.</li>
  *   <li>{@link FillMode#PAUSE_RESUME}: {@link #ingest} blocks until
- *       {@link #resume}, which reuses the same arena for the next segment.
- *       Single-arena footprint, with a latency spike on every flush.</li>
+ *       {@link #resume}, which reuses the same arena for the next segment
+ *       with a fresh sub-index. Single-arena footprint, with a latency
+ *       spike on every flush.</li>
  * </ul>
  *
  * Active-segment holder: the shard owns one per-writer holder cell,
@@ -130,10 +131,15 @@ public final class Shard {
 
     /**
      * Mark the frozen segment's run as released. Under
-     * {@link FillMode#PAUSE_RESUME}, clear the arena, reset the offset index
-     * and unblock {@link #ingest} on the same arena. Under
-     * {@link FillMode#TWIN_BUFFER}, the released arena becomes the next
-     * twin. Never called while readers may still reach the run.
+     * {@link FillMode#PAUSE_RESUME}, clear the arena, reset the offset index,
+     * start a fresh sub-index for the next segment, then unblock
+     * {@link #ingest} on the same arena. The flushed segment's sub-index is
+     * never carried over: its entries point at offsets the next segment
+     * reuses, so a stale key would resolve to a new record and, under
+     * {@link DedupMode#FIRST_WRITE_WINS}, would reject a fresh write. Under
+     * {@link FillMode#TWIN_BUFFER}, the released arena becomes the next twin
+     * and gets a fresh sub-index on the same terms. Never called while
+     * readers may still reach the run.
      *
      * @throws UnsupportedOperationException skeleton phase, not yet implemented
      */
