@@ -133,13 +133,19 @@ public final class Shard {
      * Mark the frozen segment's run as released. Under
      * {@link FillMode#PAUSE_RESUME}, clear the arena, reset the offset index,
      * start a fresh sub-index for the next segment, then unblock
-     * {@link #ingest} on the same arena. The flushed segment's sub-index is
-     * never carried over: its entries point at offsets the next segment
-     * reuses, so a stale key would resolve to a new record and, under
-     * {@link DedupMode#FIRST_WRITE_WINS}, would reject a fresh write. Under
-     * {@link FillMode#TWIN_BUFFER}, the released arena becomes the next twin
-     * and gets a fresh sub-index on the same terms. Never called while
-     * readers may still reach the run.
+     * {@link #ingest} on the same arena. The fresh sub-index is installed by
+     * publishing a new {@code (arena, subIndex)} pair into the shard's
+     * active-segment holder with {@code setRelease} before {@link #ingest}
+     * is unblocked. Because stages resolve the sub-index only through the
+     * holder, none of them can still hold the old one. The flushed
+     * segment's sub-index is never carried over: its entries point at
+     * offsets the next segment reuses, so a stale key would resolve to a new
+     * record and, under {@link DedupMode#FIRST_WRITE_WINS}, would reject a
+     * fresh write. Under {@link FillMode#TWIN_BUFFER}, the released arena
+     * becomes the next twin and gets a fresh sub-index on the same terms:
+     * the pair is published into the holder when the twin becomes active at
+     * the next {@link #freeze}. Never called while readers may still reach
+     * the run.
      *
      * @throws UnsupportedOperationException skeleton phase, not yet implemented
      */
