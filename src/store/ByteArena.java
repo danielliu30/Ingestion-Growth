@@ -47,9 +47,11 @@ public interface ByteArena {
 
     /**
      * Reset the write cursor to zero so the arena can be refilled.
-     * Records are never erased: only called after the arena has been
-     * sorted and flushed to a cold run, which retains them — never
-     * while readers may hold offsets into it.
+     * Records are never erased while reachable: a {@link SortedRun} is a
+     * view over its frozen arena and copies nothing, so this is only
+     * called once the run built over the arena has been released and no
+     * reader can still hold offsets into it. Same lifetime rule as
+     * {@link OffsetIndex#reset}.
      */
     void clear();
 }
