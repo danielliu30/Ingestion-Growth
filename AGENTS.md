@@ -12,14 +12,16 @@ javac --release 17 -d out $(find src -name "*.java")   # compile everything
 ## Architecture
 
 Stage-based pipeline (`ingest/`), off-heap storage (`store/`),
-hand-rolled protobuf wire format (`proto/`). No protobuf library.
+hand-rolled protobuf wire format (`proto/`) for egress only. No protobuf
+library.
 
 - `ingest/` — `IngestionStage<I,O>` contract, `IngestionPipeline`, data
   types (`RawInput`, `DataKind`, `Record`), stage classes
 - `store/` — `ByteArena` (off-heap append region), `SubIndex` (custom
   open-addressed hashmap: key -> arena offset), `RadixSorter`, policy
   enums (`DedupMode`, `FillMode`)
-- `proto/` — `WireWriter` / `WireReader` over caller-owned regions
+- `proto/` — `WireWriter` / `WireReader` over caller-owned regions;
+  egress codec, not used on the ingest path
 
 ## Design decisions (locked)
 
@@ -33,6 +35,12 @@ hand-rolled protobuf wire format (`proto/`). No protobuf library.
 - **Two ingest paths.** Sequential: per-thread byte stream + sub-index,
   born ordered. Out-of-order: arena + background `RadixSorter` over the
   offset index (never sorts records in place), flush to cold runs.
+- **Protobuf is egress-only.** The stored format is `RecordLayout`
+  alone: a fixed header read at fixed offsets with single loads (sort
+  key, key length, binary search over runs). Ingest never re-encodes a
+  record, and protobuf frames are never appended to an arena. `proto/`
+  is used only when data leaves the system (read-out to external
+  consumers).
 - **One writer per shard** — multi-writer = N single-writer shards.
   Hot sources scale via stage-level SPSC pipeline depth, not more writers.
 - **User switches.** `IngestMode` (ORDERED / SORT_LATER — which ingest
