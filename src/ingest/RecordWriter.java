@@ -1,9 +1,17 @@
 package ingest;
 
+import store.ActiveSegment;
+
 /**
  * Normalization stage: turns the kind-stamped header from
  * {@link TypeDetector} into a complete normalized record appended to the
- * arena.
+ * active arena.
+ *
+ * The stage is bound to the shard's {@link ActiveSegment} holder, not to one
+ * arena. Under {@link store.FillMode#TWIN_BUFFER} the active arena is
+ * swapped at every freeze, so a construction-time binding would go stale.
+ * On each call the stage loads {@link ActiveSegment#current()} and reads the
+ * detector header from, and appends the record to, that pair's arena.
  *
  * Appends a {@link store.RecordLayout} record: a header carrying
  * {@code seq}, {@code ts}, {@code kind}, {@code keyLen} and
@@ -24,13 +32,27 @@ public final class RecordWriter implements IngestionStage {
     /** Next {@code seq} to stamp. Per-shard; the single writer advances it with a plain increment. */
     private long nextSeq;
 
+    /** The shard's holder for the active arena; read with {@code getAcquire} on every call. */
+    private final ActiveSegment segment;
+
+    /**
+     * Bind the stage to one shard's active-segment holder.
+     *
+     * @param segment the shard's active-segment holder; the stage never
+     *                caches the arena it resolves
+     */
+    public RecordWriter(ActiveSegment segment) {
+        this.segment = segment;
+    }
+
     /**
      * Append the normalized record for the detector header at
      * {@code offset}, stamping the next {@code seq} and the current
      * {@code ts}.
      *
-     * @param offset arena offset of the kind-stamped header from {@link TypeDetector}
-     * @return arena offset of the appended normalized record
+     * @param offset offset of the kind-stamped header from {@link TypeDetector}
+     *               in the active arena
+     * @return offset of the appended normalized record in the active arena
      * @throws IngestionException if the arena is full or the input block is malformed
      * @throws UnsupportedOperationException skeleton phase, not yet implemented
      */
