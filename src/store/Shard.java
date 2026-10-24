@@ -100,7 +100,9 @@ public final class Shard {
      * of that record sees the same pair. Under
      * {@link FillMode#PAUSE_RESUME}, blocks while a segment is frozen.
      *
-     * @param offset arena offset fed to the first stage
+     * @param offset input offset for the first stage, in that stage's input
+     *               region (the source-region frame offset for a
+     *               {@code ByteSource}-headed pipeline, otherwise an arena offset)
      * @return arena offset of the ingested record
      * @throws IngestionException the first stage failure, as raised by
      *                            {@link IngestionPipeline#run}
